@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { RunwayCard } from "./runway-card";
+import { SaldoCards } from "./saldo-cards";
 import { LancamentoForm } from "./lancamento-form";
 import { LancamentoList } from "./lancamento-list";
+import { CategoriaManager } from "./categoria-manager";
 import { CategoriaForm } from "./categoria-form";
 
 export default async function FinancasPage() {
@@ -32,7 +33,7 @@ export default async function FinancasPage() {
       </div>
 
       <div className="flex w-full max-w-2xl flex-col gap-8">
-        <RunwayCard />
+        <SaldoCards />
 
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-medium text-text-secondary">
@@ -45,6 +46,7 @@ export default async function FinancasPage() {
           <h2 className="text-sm font-medium text-text-secondary">
             Categorias
           </h2>
+          <CategoriaManager />
           <CategoriaForm />
         </section>
 

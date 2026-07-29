@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { assinarConectividade, verificarOnlineAgora } from "../lib/net";
 import { atualizarCategoriasCache } from "../lib/categorias";
 import { atualizarLancamentosConfirmados, processarFila } from "../lib/lancamentos";
+import { atualizarSaldoCache } from "../lib/saldo";
 import { lerFila } from "../lib/outbox";
 
 export function useSincronizacao() {
@@ -27,6 +28,7 @@ export function useSincronizacao() {
       await Promise.all([
         atualizarCategoriasCache(),
         atualizarLancamentosConfirmados(),
+        atualizarSaldoCache(),
       ]);
       await atualizarContadorPendentes();
       setVersao((v) => v + 1);

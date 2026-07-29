@@ -13,6 +13,13 @@ const claro = {
   danger: "#b3413b",
   warning: "#b7791f",
   success: "#4b8063",
+
+  /* Exceção deliberada ao "nenhuma cor decorativa": só o par
+     receita/despesa do módulo de Finanças. */
+  receitaBg: "#e3f2e9",
+  receitaText: "#1e6b43",
+  despesaBg: "#fbe9e7",
+  despesaText: "#a3352c",
 };
 
 const escuro = {
@@ -27,6 +34,11 @@ const escuro = {
   danger: "#c2726d",
   warning: "#d1a056",
   success: "#7fae93",
+
+  receitaBg: "#16301f",
+  receitaText: "#7fc79b",
+  despesaBg: "#331e1c",
+  despesaText: "#e0968f",
 };
 
 export type Tema = typeof claro;
