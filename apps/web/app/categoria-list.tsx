@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export async function CategoriaList({ userEmail }: { userEmail: string }) {
@@ -9,9 +10,14 @@ export async function CategoriaList({ userEmail }: { userEmail: string }) {
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-4">
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Autenticada como {userEmail}
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Autenticada como {userEmail}
+        </p>
+        <Link href="/financas" className="text-sm text-zinc-500 hover:underline">
+          finanças →
+        </Link>
+      </div>
       {error && <p className="text-sm text-red-600">{error.message}</p>}
       <ul className="flex flex-col gap-2">
         {categorias?.length ? (
