@@ -78,6 +78,45 @@ pela URL/anon key do projeto e rode as migrations com
 - `pnpm supabase:stop` — para os containers do Supabase local.
 - `pnpm build:web` — build de produção do Next.js.
 
+## Módulo de Finanças
+
+- **Web** (`apps/web/app/financas`): dashboard de runway (view `runway_atual`),
+  criação/exclusão de lançamentos financeiros e categorias, via Server Actions.
+- **Mobile** (`apps/mobile`): mesma tela de Finanças, mas *offline-first* — ver
+  próxima seção.
+
+## Sincronização offline (mobile)
+
+O app mobile segue o mecanismo descrito na migration
+`20260727000002_auth_rls_sincronizacao.sql`: fila local (outbox) + idempotência
+no servidor via `registrar_acao_idempotente`.
+
+- `lib/outbox.ts` — fila persistida em `AsyncStorage`. Cada ação tem uma
+  `chave` gerada no cliente (`expo-crypto`) que dobra como id da linha quando é
+  uma criação, então o registro final no servidor usa o mesmo id do item
+  otimista mostrado offline (sem "trocar de id" depois de sincronizar).
+- `lib/lancamentos.ts` — `criarLancamentoOffline`/`excluirLancamento` só
+  gravam na fila; `processarFila` a drena em ordem (FIFO), chamando
+  `registrar_acao_idempotente` antes de cada mutação real. Se a chave já foi
+  processada (reenvio após queda de conexão no meio do envio), a função
+  retorna `false` e a ação é apenas descartada da fila sem duplicar a escrita.
+  Uma falha (ex.: sem conexão no meio da fila) para o processamento naquele
+  item — a ordem é preservada para a próxima tentativa.
+- `lib/categorias.ts` — cache local de categorias, necessário para criar
+  lançamentos offline sem round-trip ao servidor.
+- `hooks/useSincronizacao.ts` — dispara `processarFila` automaticamente ao
+  detectar volta de conectividade (`@react-native-community/netinfo`) e expõe
+  um botão manual "sincronizar agora" na tela.
+- A listagem (`listarLancamentos`) mescla o último snapshot confirmado do
+  servidor com as ações ainda pendentes na fila, marcando cada item pendente
+  na UI.
+
+Escopo desta primeira versão: cobre `lancamento_financeiro` (criar/excluir)
+como prova do mecanismo. Resolução de conflito otimista
+(`abrir_conflito_sincronizacao`/`marcar_conflito_resolvido`, para updates
+concorrentes em entidades críticas) ainda não tem UI — hoje só o servidor
+suporta o fluxo.
+
 ## O que já foi validado
 
 - As 46 tabelas + a view `runway_atual` do schema aplicam sem erro.
