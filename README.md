@@ -78,6 +78,70 @@ pela URL/anon key do projeto e rode as migrations com
 - `pnpm supabase:stop` — para os containers do Supabase local.
 - `pnpm build:web` — build de produção do Next.js.
 
+## Deploy do web (Vercel)
+
+O Vercel roda na nuvem e não alcança o Supabase local (`127.0.0.1`), então
+deploy real exige um projeto Supabase **hospedado** (supabase.com) com as
+migrations aplicadas nele — o app local em Docker é só para desenvolvimento.
+
+1. **Criar o projeto hospedado**: [supabase.com/dashboard](https://supabase.com/dashboard)
+   → New Project. Anote a **Project Reference** (ex.: `abcdefghijklmnop`) e a
+   senha do banco definida na criação.
+
+2. **Aplicar as migrations reais nele** (a partir da raiz do repo):
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <project-ref>
+   npx supabase db push   # aplica as 4 migrations de supabase/migrations/
+   ```
+
+3. **Criar a única usuária** no projeto hospedado (mesmo `curl` do passo 3 do
+   "Rodando localmente", mas trocando a URL para
+   `https://<project-ref>.supabase.co` e a `SERVICE_ROLE_KEY` pela do projeto
+   hospedado — Settings → API no dashboard do Supabase).
+
+4. **Conectar o repo no Vercel**: [vercel.com/new](https://vercel.com/new) →
+   importar `julianassilvagomes-glitch/aurora-os` → em "Root Directory"
+   selecione `apps/web` (o Vercel detecta o pnpm-workspace.yaml na raiz e
+   instala o monorepo inteiro automaticamente; Framework Preset "Next.js" é
+   detectado sozinho).
+
+5. **Variáveis de ambiente** do projeto Vercel (Settings → Environment
+   Variables), com os valores de Settings → API do projeto Supabase hospedado:
+   - `NEXT_PUBLIC_SUPABASE_URL` = `https://<project-ref>.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = anon key do projeto hospedado
+
+6. Deploy. O Vercel te dá o link (`https://<nome-do-projeto>.vercel.app`) e
+   passa a fazer redeploy automático a cada push em `main`.
+
+## Testando o mobile no Expo Go
+
+1. Instale o app **Expo Go** no celular (App Store / Play Store).
+2. Aponte `apps/mobile/.env` para um Supabase alcançável pelo celular — o
+   valor padrão (`http://127.0.0.1:54321`) só funciona em emulador/simulador
+   rodando na mesma máquina do Supabase local, **não** num celular físico:
+   - Testando com o Supabase local: troque para o IP da sua máquina na rede
+     local (ex.: `http://192.168.0.42:54321` — mesmo Wi-Fi do celular).
+   - Testando contra o projeto hospedado (depois do passo de deploy acima):
+     use `https://<project-ref>.supabase.co` + a anon key do projeto — assim
+     dá pra testar em qualquer rede, inclusive dados 4G/5G.
+3. Na raiz do repo: `pnpm install` (se ainda não rodou) e depois
+   `pnpm dev:mobile` (ou `cd apps/mobile && pnpm start`).
+4. O terminal mostra um QR code.
+   - **Android**: abra o app Expo Go e escaneie o QR code direto por ele.
+   - **iPhone**: escaneie o mesmo QR code pela câmera nativa do iOS — ela
+     reconhece o link do Expo e abre no Expo Go automaticamente.
+   - Celular e computador precisam estar na **mesma rede Wi-Fi**. Se a rede
+     bloquear conexão direta entre dispositivos (comum em Wi-Fi de
+     empresa/evento), rode `pnpm start --tunnel` em vez de `pnpm start` —
+     mais lento, mas passa por um túnel do Expo em vez de LAN direta.
+5. Faça login com a mesma usuária criada no passo 3 do Supabase (local ou
+   hospedado, conforme o que você apontou no `.env`).
+6. Para testar a sincronização offline: ative o modo avião, crie um
+   lançamento (ele aparece marcado "pendente de sincronização"), desative o
+   modo avião — a sincronização dispara sozinha, ou toque em
+   "sincronizar agora".
+
 ## Módulo de Finanças
 
 - **Web** (`apps/web/app/financas`): dashboard de runway (view `runway_atual`),
