@@ -30,14 +30,14 @@ export function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-zinc-200 p-6 dark:border-zinc-800"
+      className="flex w-full max-w-sm flex-col gap-4 rounded-card border border-border bg-surface p-6"
     >
       <input
         type="email"
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+        className="rounded-control border border-border bg-background px-3 py-2 text-foreground"
         required
       />
       <input
@@ -45,14 +45,14 @@ export function LoginForm() {
         placeholder="senha"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+        className="rounded-control border border-border bg-background px-3 py-2 text-foreground"
         required
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="rounded bg-black px-3 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className="rounded-control bg-primary px-3 py-2 text-white disabled:opacity-50"
       >
         {loading ? "Entrando..." : "Entrar"}
       </button>

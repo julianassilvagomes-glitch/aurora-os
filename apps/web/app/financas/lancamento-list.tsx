@@ -14,12 +14,14 @@ export async function LancamentoList() {
     .limit(20);
 
   if (error) {
-    return <p className="text-sm text-red-600">{error.message}</p>;
+    return <p className="text-sm text-danger">{error.message}</p>;
   }
 
   if (!lancamentos?.length) {
     return (
-      <p className="text-sm text-zinc-500">Nenhum lançamento registrado ainda.</p>
+      <p className="text-sm text-text-secondary">
+        Nenhum lançamento registrado ainda.
+      </p>
     );
   }
 
@@ -30,30 +32,24 @@ export async function LancamentoList() {
         return (
           <li
             key={l.id}
-            className="flex items-center justify-between gap-3 rounded border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800"
+            className="flex items-center justify-between gap-3 rounded-card border border-border bg-surface px-3 py-2 text-sm"
           >
             <div className="flex flex-col">
-              <span>
+              <span className="text-foreground">
                 {l.categoria_financeira?.nome ?? "—"}
                 {l.descricao ? ` · ${l.descricao}` : ""}
               </span>
-              <span className="text-xs text-zinc-500">{l.data}</span>
+              <span className="text-xs text-text-secondary">{l.data}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span
-                className={
-                  l.tipo === "receita"
-                    ? "font-medium text-emerald-600"
-                    : "font-medium text-red-600"
-                }
-              >
+              <span className="font-semibold text-foreground">
                 {l.tipo === "receita" ? "+" : "-"}
                 {formatarMoeda(l.valor)}
               </span>
               <form action={excluir}>
                 <button
                   type="submit"
-                  className="text-xs text-zinc-400 hover:text-red-600"
+                  className="text-xs text-text-secondary hover:text-danger"
                   aria-label="Excluir lançamento"
                 >
                   excluir

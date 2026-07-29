@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -8,8 +8,12 @@ import {
   View,
 } from "react-native";
 import { supabase } from "../lib/supabase";
+import { raioCard, raioControle, useTema, type Tema } from "../lib/theme";
 
 export function LoginScreen() {
+  const tema = useTema();
+  const estilos = useMemo(() => criarEstilos(tema), [tema]);
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -27,52 +31,70 @@ export function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Aurora OS</Text>
+    <View style={estilos.container}>
+      <Text style={estilos.titulo}>Aurora OS</Text>
       <TextInput
-        style={styles.input}
+        style={estilos.input}
         placeholder="email"
+        placeholderTextColor={tema.textSecondary}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
       <TextInput
-        style={styles.input}
+        style={estilos.input}
         placeholder="senha"
+        placeholderTextColor={tema.textSecondary}
         secureTextEntry
         value={senha}
         onChangeText={setSenha}
       />
-      {erro && <Text style={styles.erro}>{erro}</Text>}
-      <TouchableOpacity style={styles.botao} onPress={entrar} disabled={carregando}>
+      {erro && <Text style={estilos.erro}>{erro}</Text>}
+      <TouchableOpacity style={estilos.botao} onPress={entrar} disabled={carregando}>
         {carregando ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.botaoTexto}>Entrar</Text>
+          <Text style={estilos.botaoTexto}>Entrar</Text>
         )}
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24, gap: 12 },
-  titulo: { fontSize: 24, fontWeight: "600", marginBottom: 12, textAlign: "center" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d4d4d8",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  erro: { color: "#dc2626", fontSize: 13 },
-  botao: {
-    backgroundColor: "#18181b",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  botaoTexto: { color: "#fff", fontWeight: "600" },
-});
+function criarEstilos(tema: Tema) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      padding: 24,
+      gap: 12,
+      backgroundColor: tema.background,
+    },
+    titulo: {
+      fontSize: 24,
+      fontWeight: "600",
+      marginBottom: 12,
+      textAlign: "center",
+      color: tema.primaryDark,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: tema.border,
+      backgroundColor: tema.surface,
+      color: tema.foreground,
+      borderRadius: raioControle,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    erro: { color: tema.danger, fontSize: 13 },
+    botao: {
+      backgroundColor: tema.primary,
+      borderRadius: raioCard,
+      paddingVertical: 12,
+      alignItems: "center",
+      marginTop: 4,
+    },
+    botaoTexto: { color: "#fff", fontWeight: "600" },
+  });
+}

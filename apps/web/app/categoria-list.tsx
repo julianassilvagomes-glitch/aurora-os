@@ -11,26 +11,26 @@ export async function CategoriaList({ userEmail }: { userEmail: string }) {
   return (
     <div className="flex w-full max-w-sm flex-col gap-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-text-secondary">
           Autenticada como {userEmail}
         </p>
-        <Link href="/financas" className="text-sm text-zinc-500 hover:underline">
+        <Link href="/financas" className="text-sm font-medium text-primary hover:underline">
           finanças →
         </Link>
       </div>
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
+      {error && <p className="text-sm text-danger">{error.message}</p>}
       <ul className="flex flex-col gap-2">
         {categorias?.length ? (
           categorias.map((c) => (
             <li
               key={c.id}
-              className="rounded border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800"
+              className="rounded-card border border-border bg-surface px-3 py-2 text-sm text-foreground"
             >
               {c.nome} — {c.grupo}
             </li>
           ))
         ) : (
-          <li className="text-sm text-zinc-500">
+          <li className="text-sm text-text-secondary">
             Nenhuma categoria financeira cadastrada ainda.
           </li>
         )}

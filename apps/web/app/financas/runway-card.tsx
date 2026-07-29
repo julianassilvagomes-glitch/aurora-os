@@ -12,7 +12,7 @@ export async function RunwayCard() {
     .maybeSingle();
 
   if (error) {
-    return <p className="text-sm text-red-600">{error.message}</p>;
+    return <p className="text-sm text-danger">{error.message}</p>;
   }
 
   const saldo = data?.saldo_atual ?? 0;
@@ -21,21 +21,21 @@ export async function RunwayCard() {
 
   return (
     <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-      <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-        <p className="text-xs text-zinc-500">Saldo atual</p>
-        <p className="text-lg font-semibold text-black dark:text-zinc-50">
+      <div className="rounded-card border border-border bg-surface p-4">
+        <p className="text-xs text-text-secondary">Saldo atual</p>
+        <p className="text-lg font-semibold text-foreground">
           {formatarMoeda(saldo)}
         </p>
       </div>
-      <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-        <p className="text-xs text-zinc-500">Média de despesas (3 meses)</p>
-        <p className="text-lg font-semibold text-black dark:text-zinc-50">
+      <div className="rounded-card border border-border bg-surface p-4">
+        <p className="text-xs text-text-secondary">Média de despesas (3 meses)</p>
+        <p className="text-lg font-semibold text-foreground">
           {formatarMoeda(mediaDespesas)}
         </p>
       </div>
-      <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-        <p className="text-xs text-zinc-500">Runway</p>
-        <p className="text-lg font-semibold text-black dark:text-zinc-50">
+      <div className="rounded-card border border-border bg-surface-primary p-4">
+        <p className="text-xs text-text-secondary">Runway</p>
+        <p className="text-xl font-semibold text-primary-dark">
           {mesesRestantes === null
             ? "sem despesas registradas"
             : `${mesesRestantes.toFixed(1)} meses`}

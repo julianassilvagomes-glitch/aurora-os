@@ -18,12 +18,12 @@ export function CategoriaForm() {
         name="nome"
         placeholder="nova categoria"
         required
-        className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-foreground"
       />
       <select
         name="grupo"
         defaultValue="variavel"
-        className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-foreground"
       >
         <option value="fixo">fixo</option>
         <option value="variavel">variável</option>
@@ -34,11 +34,11 @@ export function CategoriaForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded border border-zinc-300 px-3 py-2 text-sm disabled:opacity-50 dark:border-zinc-700"
+        className="rounded-control border border-border px-3 py-2 text-sm text-primary disabled:opacity-50"
       >
         {pending ? "Salvando..." : "Adicionar categoria"}
       </button>
-      {state.error && <p className="w-full text-sm text-red-600">{state.error}</p>}
+      {state.error && <p className="w-full text-sm text-danger">{state.error}</p>}
     </form>
   );
 }

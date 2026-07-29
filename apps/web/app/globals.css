@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Fundo — azul muito claro / quase branco (modo claro) */
+  --background: #f5f8fc;
+  --surface: #ffffff;
+  --surface-primary: #eaf1fa;
+
+  /* Texto */
+  --foreground: #1c2430;
+  --text-secondary: #64748b;
+
+  --border: #e2e8f0;
+
+  /* Azul de identidade */
+  --primary: #2f5da8;
+  --primary-dark: #14243d;
+  --primary-hover: #24487f;
+
+  /* Semânticas — uso restrito, sempre com significado */
+  --danger: #b3413b;
+  --warning: #b7791f;
+  --success: #4b8063;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-primary: var(--surface-primary);
   --color-foreground: var(--foreground);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-hover: var(--primary-hover);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Cantos levemente arredondados, consistentes em toda a interface */
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b0f14;
+    --surface: #161c24;
+    --surface-primary: #1b2836;
+
+    --foreground: #e5e9ef;
+    --text-secondary: #94a3b8;
+
+    --border: #2a3341;
+
+    /* Modo escuro: azul de identidade mais dessaturado/escuro como fundo,
+       mais claro como texto/destaque — não é "inverter as cores". */
+    --primary: #5b8def;
+    --primary-dark: #9dc0ee;
+    --primary-hover: #4a78c9;
+
+    /* Semânticas levemente menos saturadas contra o fundo escuro */
+    --danger: #c2726d;
+    --warning: #d1a056;
+    --success: #7fae93;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
