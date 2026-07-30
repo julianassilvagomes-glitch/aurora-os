@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import {
   criarBlocoCronograma,
-  listarBlocosCronograma,
+  diasDaSemanaAtual,
+  listarBlocosSemana,
   listarDisciplinas,
   listarTopicos,
   marcarBlocoStatus,
@@ -12,10 +13,12 @@ import {
   type Disciplina,
   type Topico,
 } from "../../lib/estudos";
+import { coresCategoria, rotuloCategoria } from "../../lib/categoria-cores";
 import { useTema, raioCard, raioControle, type Tema } from "../../lib/theme";
 
 const categorias = [
   { valor: "lei_seca", rotulo: "lei seca" },
+  { valor: "doutrina", rotulo: "doutrina" },
   { valor: "jurisprudencia", rotulo: "jurisprudência" },
   { valor: "questoes", rotulo: "questões" },
   { valor: "revisao", rotulo: "revisão" },
@@ -28,6 +31,13 @@ const rotuloStatus: Record<string, string> = {
   concluido: "concluído",
   perdido: "perdido",
 };
+
+const nomesDias = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+
+function formatarDataCurta(iso: string) {
+  const [, mes, dia] = iso.split("-");
+  return `${dia}/${mes}`;
+}
 
 export function CronogramaSecao({ versao, aoMudar }: { versao: number; aoMudar: () => void }) {
   const tema = useTema();
@@ -45,12 +55,21 @@ export function CronogramaSecao({ versao, aoMudar }: { versao: number; aoMudar: 
   const [realocandoId, setRealocandoId] = useState<string | null>(null);
   const [novaDataRealoc, setNovaDataRealoc] = useState("");
 
+  const hoje = new Date();
+  const hojeStr = hoje.toISOString().slice(0, 10);
+  const dias = useMemo(() => diasDaSemanaAtual(hoje), [versao]);
+
   async function recarregar() {
-    const [d, t, b] = await Promise.all([listarDisciplinas(), listarTopicos(), listarBlocosCronograma()]);
+    const [d, t, b, sugestao] = await Promise.all([
+      listarDisciplinas(),
+      listarTopicos(),
+      listarBlocosSemana(dias[0], dias[dias.length - 1]),
+      listarDisciplinas().then((lista) => sugerirProximaDisciplina(lista)),
+    ]);
     setDisciplinas(d);
     setTopicos(t);
     setBlocos(b);
-    setDisciplinaId((atual) => atual ?? sugerirProximaDisciplina(d, b));
+    setDisciplinaId((atual) => atual ?? sugestao);
   }
 
   useEffect(() => {
@@ -66,7 +85,7 @@ export function CronogramaSecao({ versao, aoMudar }: { versao: number; aoMudar: 
     }
     setSalvando(true);
     const erroAcao = await criarBlocoCronograma({
-      data: new Date().toISOString().slice(0, 10),
+      data: hojeStr,
       disciplinaId,
       topicoId: null,
       categoria,
@@ -156,55 +175,84 @@ export function CronogramaSecao({ versao, aoMudar }: { versao: number; aoMudar: 
         </TouchableOpacity>
       </View>
 
-      {blocos.length ? (
-        blocos.map((bloco) => (
-          <View key={bloco.id} style={estilos.blocoCard}>
-            <View style={estilos.blocoLinha}>
-              <View style={{ flex: 1 }}>
-                <Text style={estilos.blocoTitulo}>
-                  {bloco.disciplina?.nome ?? "—"}
-                  {bloco.topico ? ` · ${bloco.topico.titulo}` : ""}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {dias.map((dia, indice) => {
+            const ehHoje = dia === hojeStr;
+            const blocosDoDia = blocos.filter((b) => b.data === dia);
+            const porCategoria = new Map<string, BlocoCronograma[]>();
+            for (const bloco of blocosDoDia) {
+              const lista = porCategoria.get(bloco.categoria) ?? [];
+              lista.push(bloco);
+              porCategoria.set(bloco.categoria, lista);
+            }
+
+            return (
+              <View key={dia} style={[estilos.diaCard, ehHoje && estilos.diaCardHoje]}>
+                <Text style={[estilos.diaTitulo, ehHoje && { color: tema.primaryDark }]}>
+                  {nomesDias[indice]} <Text style={estilos.diaData}>{formatarDataCurta(dia)}</Text>
                 </Text>
-                <Text style={estilos.blocoMeta}>
-                  {bloco.data} · {categorias.find((c) => c.valor === bloco.categoria)?.rotulo} ·{" "}
-                  {bloco.duracao_planejada_min} min · {rotuloStatus[bloco.status] ?? bloco.status}
-                </Text>
+                {blocosDoDia.length === 0 ? (
+                  <Text style={estilos.vazioDia}>nada planejado</Text>
+                ) : (
+                  [...porCategoria.entries()].map(([cat, itens]) => {
+                    const cores = coresCategoria(tema, cat);
+                    return (
+                      <View key={cat} style={[estilos.grupoCategoria, { backgroundColor: cores.bg }]}>
+                        <Text style={[estilos.grupoTitulo, { color: cores.text }]}>
+                          {rotuloCategoria[cat] ?? cat}
+                        </Text>
+                        {itens.map((bloco) => (
+                          <View key={bloco.id} style={estilos.blocoItem}>
+                            <Text style={[estilos.blocoTitulo, { color: cores.text }]}>
+                              {bloco.disciplina?.nome ?? "—"}
+                            </Text>
+                            <Text style={estilos.blocoMeta}>
+                              {bloco.duracao_planejada_min} min ·{" "}
+                              {rotuloStatus[bloco.status] ?? bloco.status}
+                            </Text>
+                            {bloco.status === "planejado" && (
+                              <View style={estilos.acoes}>
+                                <TouchableOpacity onPress={() => concluir(bloco.id)}>
+                                  <Text style={{ color: tema.success, fontSize: 10 }}>concluir</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => marcarPerdido(bloco.id)}>
+                                  <Text style={{ color: tema.textSecondary, fontSize: 10 }}>
+                                    perdido
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                            {bloco.status === "perdido" && (
+                              <TouchableOpacity onPress={() => setRealocandoId(bloco.id)}>
+                                <Text style={{ color: tema.primary, fontSize: 10 }}>realocar</Text>
+                              </TouchableOpacity>
+                            )}
+                            {realocandoId === bloco.id && (
+                              <View style={estilos.realocarLinha}>
+                                <TextInput
+                                  value={novaDataRealoc}
+                                  onChangeText={setNovaDataRealoc}
+                                  placeholder="AAAA-MM-DD"
+                                  placeholderTextColor={tema.textSecondary}
+                                  style={estilos.inputRealocar}
+                                />
+                                <TouchableOpacity onPress={() => confirmarRealocacao(bloco.id)}>
+                                  <Text style={estilos.adicionarTexto}>OK</Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    );
+                  })
+                )}
               </View>
-              {bloco.status === "planejado" && (
-                <View style={estilos.acoes}>
-                  <TouchableOpacity onPress={() => concluir(bloco.id)}>
-                    <Text style={{ color: tema.success, fontSize: 11 }}>concluir</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => marcarPerdido(bloco.id)}>
-                    <Text style={{ color: tema.textSecondary, fontSize: 11 }}>perdido</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {bloco.status === "perdido" && (
-                <TouchableOpacity onPress={() => setRealocandoId(bloco.id)}>
-                  <Text style={{ color: tema.primary, fontSize: 11 }}>realocar</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {realocandoId === bloco.id && (
-              <View style={estilos.realocarLinha}>
-                <TextInput
-                  value={novaDataRealoc}
-                  onChangeText={setNovaDataRealoc}
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor={tema.textSecondary}
-                  style={estilos.input}
-                />
-                <TouchableOpacity onPress={() => confirmarRealocacao(bloco.id)}>
-                  <Text style={estilos.adicionarTexto}>Confirmar</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))
-      ) : (
-        <Text style={estilos.vazio}>Nenhum bloco no cronograma ainda.</Text>
-      )}
+            );
+          })}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -245,20 +293,37 @@ function criarEstilos(tema: Tema) {
     erro: { fontSize: 12, color: tema.danger },
     botao: { backgroundColor: tema.primary, borderRadius: raioControle, paddingVertical: 10, alignItems: "center" },
     botaoTexto: { color: "#fff", fontSize: 13, fontWeight: "600" },
-    blocoCard: {
+    diaCard: {
+      width: 150,
       borderWidth: 1,
       borderColor: tema.border,
       backgroundColor: tema.surface,
       borderRadius: raioCard,
-      padding: 10,
+      padding: 8,
       gap: 6,
     },
-    blocoLinha: { flexDirection: "row", alignItems: "center", gap: 8 },
-    blocoTitulo: { fontSize: 13, color: tema.foreground },
-    blocoMeta: { fontSize: 11, color: tema.textSecondary, marginTop: 2 },
-    acoes: { flexDirection: "row", gap: 10 },
-    realocarLinha: { flexDirection: "row", gap: 6, alignItems: "center" },
-    adicionarTexto: { fontSize: 12, color: tema.primary, fontWeight: "600" },
-    vazio: { fontSize: 12, color: tema.textSecondary },
+    diaCardHoje: { borderColor: tema.primary, backgroundColor: tema.surfacePrimary },
+    diaTitulo: { fontSize: 12, fontWeight: "600", color: tema.textSecondary },
+    diaData: { fontWeight: "400" },
+    vazioDia: { fontSize: 11, color: tema.textSecondary },
+    grupoCategoria: { borderRadius: raioControle, padding: 6, gap: 4 },
+    grupoTitulo: { fontSize: 9, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 },
+    blocoItem: { gap: 2 },
+    blocoTitulo: { fontSize: 11, fontWeight: "600" },
+    blocoMeta: { fontSize: 10, color: tema.textSecondary },
+    acoes: { flexDirection: "row", gap: 8 },
+    realocarLinha: { flexDirection: "row", gap: 4, alignItems: "center", marginTop: 2 },
+    inputRealocar: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: tema.border,
+      backgroundColor: tema.background,
+      color: tema.foreground,
+      borderRadius: raioControle,
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      fontSize: 10,
+    },
+    adicionarTexto: { fontSize: 11, color: tema.primary, fontWeight: "600" },
   });
 }

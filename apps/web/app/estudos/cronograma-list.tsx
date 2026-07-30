@@ -1,14 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { CronogramaForm } from "./cronograma-form";
-import { BlocoItem } from "./bloco-item";
+import { CronogramaSemana, diasDaSemanaAtual } from "./cronograma-semana";
 
 export async function CronogramaList() {
   const supabase = await createClient();
+  const dias = diasDaSemanaAtual(new Date());
+  const primeiroDia = dias[0];
+  const ultimoDia = dias[dias.length - 1];
 
   const [
     { data: disciplinas, error: erroDisciplinas },
     { data: topicos },
     { data: blocos, error: erroBlocos },
+    { data: maisRecenteLista },
   ] = await Promise.all([
     supabase
       .from("disciplina")
@@ -21,8 +25,13 @@ export async function CronogramaList() {
       .select(
         "id, data, categoria, status, duracao_planejada_min, disciplina_id, disciplina:disciplina_id(nome), topico:topico_id(titulo)"
       )
+      .gte("data", primeiroDia)
+      .lte("data", ultimoDia),
+    supabase
+      .from("bloco_cronograma")
+      .select("disciplina_id")
       .order("data", { ascending: false })
-      .limit(30),
+      .limit(1),
   ]);
 
   if (erroDisciplinas) return <p className="text-sm text-danger">{erroDisciplinas.message}</p>;
@@ -33,7 +42,7 @@ export async function CronogramaList() {
   // não há nenhum bloco criado).
   let disciplinaSugeridaId: string | null = null;
   if (disciplinas?.length) {
-    const maisRecente = [...(blocos ?? [])].sort((a, b) => b.data.localeCompare(a.data))[0];
+    const maisRecente = maisRecenteLista?.[0] ?? null;
     if (!maisRecente) {
       disciplinaSugeridaId = disciplinas[0].id;
     } else {
@@ -52,15 +61,7 @@ export async function CronogramaList() {
         topicos={topicos ?? []}
         disciplinaSugeridaId={disciplinaSugeridaId}
       />
-      {blocos?.length ? (
-        <ul className="flex flex-col gap-2">
-          {blocos.map((bloco) => (
-            <BlocoItem key={bloco.id} bloco={bloco} />
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-text-secondary">Nenhum bloco no cronograma ainda.</p>
-      )}
+      <CronogramaSemana blocos={blocos ?? []} />
     </div>
   );
 }

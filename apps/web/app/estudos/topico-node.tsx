@@ -7,6 +7,7 @@ import { TopicoForm } from "./topico-form";
 import type { Database } from "@aurora/shared";
 
 type StatusTopico = Database["public"]["Enums"]["status_topico"];
+type TipoConteudo = Database["public"]["Enums"]["tipo_conteudo_topico"];
 
 export type Topico = {
   id: string;
@@ -15,6 +16,8 @@ export type Topico = {
   contador_revisoes: number;
   topico_pai_id: string | null;
   incidencia: string | null;
+  tipo_conteudo: TipoConteudo;
+  ordem_na_lista: number;
 };
 
 const rotuloStatus: Record<StatusTopico, string> = {

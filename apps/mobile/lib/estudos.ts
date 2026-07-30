@@ -7,6 +7,7 @@ export type { BotaoRevisao };
 type StatusTopico = Database["public"]["Enums"]["status_topico"];
 type CategoriaEstudo = Database["public"]["Enums"]["categoria_estudo"];
 type MotivoErro = Database["public"]["Enums"]["motivo_erro_questao"];
+export type TipoConteudo = Database["public"]["Enums"]["tipo_conteudo_topico"];
 
 /** Gestão de conteúdo de Estudos é só-online, mesmo critério já usado
  * para categorias financeiras: não é uso diário offline. */
@@ -24,6 +25,8 @@ export type Topico = {
   topico_pai_id: string | null;
   incidencia: string | null;
   disciplina_id: string;
+  tipo_conteudo: TipoConteudo;
+  ordem_na_lista: number;
 };
 
 export async function listarDisciplinas(): Promise<Disciplina[]> {
@@ -49,21 +52,60 @@ export async function criarDisciplina(
 export async function listarTopicos(): Promise<Topico[]> {
   const { data } = await supabase
     .from("topico_edital")
-    .select("id, titulo, status, contador_revisoes, topico_pai_id, incidencia, disciplina_id");
+    .select(
+      "id, titulo, status, contador_revisoes, topico_pai_id, incidencia, disciplina_id, tipo_conteudo, ordem_na_lista"
+    );
   return data ?? [];
 }
 
+/**
+ * Tópicos-raiz entram numerados no fim de uma das duas listas paralelas
+ * (Lei Seca ou Doutrina) da disciplina; subtópicos herdam o tipo_conteudo
+ * do pai em vez de escolher de novo.
+ */
 export async function criarTopico(
   disciplinaId: string,
   titulo: string,
   topicoPaiId: string | null,
-  incidencia: string | null
+  incidencia: string | null,
+  tipoConteudoRaiz?: TipoConteudo
 ): Promise<string | null> {
+  let tipoConteudo: TipoConteudo;
+
+  if (topicoPaiId) {
+    const { data: pai, error: erroPai } = await supabase
+      .from("topico_edital")
+      .select("tipo_conteudo")
+      .eq("id", topicoPaiId)
+      .single();
+    if (erroPai) return erroPai.message;
+    tipoConteudo = pai.tipo_conteudo;
+  } else {
+    if (!tipoConteudoRaiz) return "Selecione lei seca ou doutrina.";
+    tipoConteudo = tipoConteudoRaiz;
+  }
+
+  let ordemNaLista = 0;
+  if (!topicoPaiId) {
+    const { data: ultimo } = await supabase
+      .from("topico_edital")
+      .select("ordem_na_lista")
+      .eq("disciplina_id", disciplinaId)
+      .eq("tipo_conteudo", tipoConteudo)
+      .is("topico_pai_id", null)
+      .order("ordem_na_lista", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    ordemNaLista = (ultimo?.ordem_na_lista ?? 0) + 1;
+  }
+
   const { error } = await supabase.from("topico_edital").insert({
     disciplina_id: disciplinaId,
     titulo,
     topico_pai_id: topicoPaiId,
     incidencia,
+    tipo_conteudo: tipoConteudo,
+    ordem_na_lista: ordemNaLista,
   });
   return error?.message ?? null;
 }
@@ -167,26 +209,49 @@ export type BlocoCronograma = {
   topico: { titulo: string } | null;
 };
 
-export async function listarBlocosCronograma(): Promise<BlocoCronograma[]> {
+/** Segunda a domingo da semana que contém `hoje`. */
+export function diasDaSemanaAtual(hoje: Date): string[] {
+  const diaSemanaIso = (hoje.getDay() + 6) % 7; // 0 = segunda
+  const segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() - diaSemanaIso);
+
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(segunda);
+    d.setDate(segunda.getDate() + i);
+    return d.toISOString().slice(0, 10);
+  });
+}
+
+export async function listarBlocosSemana(
+  primeiroDia: string,
+  ultimoDia: string
+): Promise<BlocoCronograma[]> {
   const { data } = await supabase
     .from("bloco_cronograma")
     .select(
       "id, data, categoria, status, duracao_planejada_min, disciplina_id, disciplina:disciplina_id(nome), topico:topico_id(titulo)"
     )
-    .order("data", { ascending: false })
-    .limit(30);
+    .gte("data", primeiroDia)
+    .lte("data", ultimoDia);
   return data ?? [];
 }
 
-/** Ciclo de alternância: próxima disciplina na ordem_no_ciclo depois da do bloco mais recente. */
-export function sugerirProximaDisciplina(
-  disciplinas: Disciplina[],
-  blocos: BlocoCronograma[]
-): string | null {
+async function buscarDisciplinaMaisRecente(): Promise<string | null> {
+  const { data } = await supabase
+    .from("bloco_cronograma")
+    .select("disciplina_id")
+    .order("data", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data?.disciplina_id ?? null;
+}
+
+/** Ciclo de alternância: próxima disciplina na ordem_no_ciclo depois da do bloco mais recente (de qualquer semana). */
+export async function sugerirProximaDisciplina(disciplinas: Disciplina[]): Promise<string | null> {
   if (!disciplinas.length) return null;
-  const maisRecente = [...blocos].sort((a, b) => b.data.localeCompare(a.data))[0];
-  if (!maisRecente) return disciplinas[0].id;
-  const indiceAtual = disciplinas.findIndex((d) => d.id === maisRecente.disciplina_id);
+  const maisRecenteId = await buscarDisciplinaMaisRecente();
+  if (!maisRecenteId) return disciplinas[0].id;
+  const indiceAtual = disciplinas.findIndex((d) => d.id === maisRecenteId);
   return indiceAtual >= 0
     ? disciplinas[(indiceAtual + 1) % disciplinas.length].id
     : disciplinas[0].id;

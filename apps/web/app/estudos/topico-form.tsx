@@ -2,16 +2,22 @@
 
 import { useActionState } from "react";
 import { criarTopico, type ActionState } from "./actions";
+import type { Database } from "@aurora/shared";
+
+type TipoConteudo = Database["public"]["Enums"]["tipo_conteudo_topico"];
 
 const initialState: ActionState = { error: null };
 
 export function TopicoForm({
   disciplinaId,
   topicoPaiId,
+  tipoConteudo,
   aoFechar,
 }: {
   disciplinaId: string;
   topicoPaiId: string | null;
+  /** Só é usado (e obrigatório) para itens-raiz — subtópicos herdam do pai no servidor. */
+  tipoConteudo?: TipoConteudo;
   aoFechar?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(criarTopico, initialState);
@@ -20,6 +26,9 @@ export function TopicoForm({
     <form action={formAction} className="flex flex-wrap items-center gap-2 py-1">
       <input type="hidden" name="disciplina_id" value={disciplinaId} />
       {topicoPaiId && <input type="hidden" name="topico_pai_id" value={topicoPaiId} />}
+      {!topicoPaiId && tipoConteudo && (
+        <input type="hidden" name="tipo_conteudo" value={tipoConteudo} />
+      )}
       <input
         name="titulo"
         placeholder={topicoPaiId ? "novo subtópico" : "novo tópico"}

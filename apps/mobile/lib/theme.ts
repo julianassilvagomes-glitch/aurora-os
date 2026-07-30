@@ -20,6 +20,16 @@ const claro = {
   receitaText: "#1e6b43",
   despesaBg: "#fbe9e7",
   despesaText: "#a3352c",
+
+  /* Categorias do Cronograma da semana — variações dentro do azul-sóbrio. */
+  catLeiSecaBg: "#e4ecfa",
+  catLeiSecaText: "#1f3c73",
+  catDoutrinaBg: "#eae7f9",
+  catDoutrinaText: "#372f6b",
+  catQuestoesBg: "#e1f0fa",
+  catQuestoesText: "#164866",
+  catJurisprudenciaBg: "#dde6f5",
+  catJurisprudenciaText: "#24345c",
 };
 
 const escuro = {
@@ -39,6 +49,15 @@ const escuro = {
   receitaText: "#7fc79b",
   despesaBg: "#331e1c",
   despesaText: "#e0968f",
+
+  catLeiSecaBg: "#1c2a4a",
+  catLeiSecaText: "#a9c1ec",
+  catDoutrinaBg: "#26214a",
+  catDoutrinaText: "#c3b8ec",
+  catQuestoesBg: "#123244",
+  catQuestoesText: "#9bd4e8",
+  catJurisprudenciaBg: "#1e2740",
+  catJurisprudenciaText: "#b0c1e8",
 };
 
 export type Tema = typeof claro;

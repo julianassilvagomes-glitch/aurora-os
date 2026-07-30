@@ -1601,9 +1601,11 @@ export type Database = {
           disciplina_id: string
           id: string
           incidencia: string | null
+          ordem_na_lista: number
           proxima_revisao_sugerida: string | null
           status: Database["public"]["Enums"]["status_topico"]
           texto_original_edital: string | null
+          tipo_conteudo: Database["public"]["Enums"]["tipo_conteudo_topico"]
           titulo: string
           topico_pai_id: string | null
           updated_at: string
@@ -1614,9 +1616,11 @@ export type Database = {
           disciplina_id: string
           id?: string
           incidencia?: string | null
+          ordem_na_lista?: number
           proxima_revisao_sugerida?: string | null
           status?: Database["public"]["Enums"]["status_topico"]
           texto_original_edital?: string | null
+          tipo_conteudo: Database["public"]["Enums"]["tipo_conteudo_topico"]
           titulo: string
           topico_pai_id?: string | null
           updated_at?: string
@@ -1627,9 +1631,11 @@ export type Database = {
           disciplina_id?: string
           id?: string
           incidencia?: string | null
+          ordem_na_lista?: number
           proxima_revisao_sugerida?: string | null
           status?: Database["public"]["Enums"]["status_topico"]
           texto_original_edital?: string | null
+          tipo_conteudo?: Database["public"]["Enums"]["tipo_conteudo_topico"]
           titulo?: string
           topico_pai_id?: string | null
           updated_at?: string
@@ -1689,6 +1695,7 @@ export type Database = {
         | "questoes"
         | "revisao"
         | "redacao"
+        | "doutrina"
       horizonte_meta: "curto_prazo" | "medio_prazo" | "longo_prazo"
       modulo_sistema:
         | "estudos"
@@ -1720,6 +1727,7 @@ export type Database = {
         | "cancelado"
       status_meta: "em_andamento" | "atingida" | "abandonada"
       status_topico: "nao_iniciado" | "em_estudo" | "revisado" | "consolidado"
+      tipo_conteudo_topico: "lei_seca" | "doutrina"
       tipo_origem_bloco:
         | "trabalho"
         | "estudos"
@@ -1863,6 +1871,7 @@ export const Constants = {
         "questoes",
         "revisao",
         "redacao",
+        "doutrina",
       ],
       horizonte_meta: ["curto_prazo", "medio_prazo", "longo_prazo"],
       modulo_sistema: [
@@ -1899,6 +1908,7 @@ export const Constants = {
       ],
       status_meta: ["em_andamento", "atingida", "abandonada"],
       status_topico: ["nao_iniciado", "em_estudo", "revisado", "consolidado"],
+      tipo_conteudo_topico: ["lei_seca", "doutrina"],
       tipo_origem_bloco: [
         "trabalho",
         "estudos",

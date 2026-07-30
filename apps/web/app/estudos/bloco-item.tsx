@@ -5,14 +5,6 @@ import { marcarBlocoStatus, realocarBloco, type ActionState } from "./actions";
 
 const initialState: ActionState = { error: null };
 
-const rotuloCategoria: Record<string, string> = {
-  lei_seca: "lei seca",
-  jurisprudencia: "jurisprudência",
-  questoes: "questões",
-  revisao: "revisão",
-  redacao: "redação",
-};
-
 const rotuloStatus: Record<string, string> = {
   planejado: "planejado",
   realocado: "realocado",
@@ -22,16 +14,18 @@ const rotuloStatus: Record<string, string> = {
 
 export function BlocoItem({
   bloco,
+  textClassName,
 }: {
   bloco: {
     id: string;
-    data: string;
     categoria: string;
     status: string;
     duracao_planejada_min: number;
     disciplina: { nome: string } | null;
     topico: { titulo: string } | null;
   };
+  /** Classe de cor de texto herdada do agrupamento por categoria. */
+  textClassName: string;
 }) {
   const [processando, setProcessando] = useState(false);
   const [mostrarRealocar, setMostrarRealocar] = useState(false);
@@ -50,25 +44,22 @@ export function BlocoItem({
   }
 
   return (
-    <li className="rounded-card border border-border bg-surface p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-foreground">
-            {bloco.disciplina?.nome ?? "—"}
-            {bloco.topico ? ` · ${bloco.topico.titulo}` : ""}
-          </p>
-          <p className="text-xs text-text-secondary">
-            {bloco.data} · {rotuloCategoria[bloco.categoria] ?? bloco.categoria} ·{" "}
-            {bloco.duracao_planejada_min} min · {rotuloStatus[bloco.status] ?? bloco.status}
-          </p>
-        </div>
+    <li className="rounded-control bg-surface/60 p-2">
+      <p className={`text-xs font-medium ${textClassName}`}>
+        {bloco.disciplina?.nome ?? "—"}
+        {bloco.topico ? ` · ${bloco.topico.titulo}` : ""}
+      </p>
+      <div className="mt-0.5 flex items-center justify-between gap-2">
+        <span className="text-[11px] text-text-secondary">
+          {bloco.duracao_planejada_min} min · {rotuloStatus[bloco.status] ?? bloco.status}
+        </span>
         {bloco.status === "planejado" && (
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
               onClick={concluir}
               disabled={processando}
-              className="text-xs text-success disabled:opacity-50"
+              className="text-[11px] text-success disabled:opacity-50"
             >
               concluir
             </button>
@@ -76,7 +67,7 @@ export function BlocoItem({
               type="button"
               onClick={marcarPerdido}
               disabled={processando}
-              className="text-xs text-text-secondary hover:text-danger disabled:opacity-50"
+              className="text-[11px] text-text-secondary hover:text-danger disabled:opacity-50"
             >
               perdido
             </button>
@@ -86,7 +77,7 @@ export function BlocoItem({
           <button
             type="button"
             onClick={() => setMostrarRealocar((v) => !v)}
-            className="shrink-0 text-xs text-primary"
+            className="shrink-0 text-[11px] text-primary"
           >
             realocar
           </button>
@@ -104,7 +95,7 @@ export function BlocoItem({
           />
           <input
             name="motivo"
-            placeholder="motivo da realocação (opcional)"
+            placeholder="motivo (opcional)"
             className="rounded-control border border-border bg-background px-2 py-1 text-xs text-foreground"
           />
           <button

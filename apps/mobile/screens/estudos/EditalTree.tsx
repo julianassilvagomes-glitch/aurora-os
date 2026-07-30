@@ -7,9 +7,19 @@ import {
   listarTopicos,
   type Disciplina,
   type Topico,
+  type TipoConteudo,
 } from "../../lib/estudos";
-import { TopicoNode } from "./TopicoNode";
+import { TopicoListaItem } from "./TopicoListaItem";
 import { useTema, raioCard, raioControle, type Tema } from "../../lib/theme";
+
+const listas: { tipo: TipoConteudo; titulo: string }[] = [
+  { tipo: "lei_seca", titulo: "Lei Seca" },
+  { tipo: "doutrina", titulo: "Doutrina" },
+];
+
+function chaveNovoTopico(disciplinaId: string, tipo: TipoConteudo) {
+  return `${disciplinaId}:${tipo}`;
+}
 
 export function EditalTree({ versao, aoMudar }: { versao: number; aoMudar: () => void }) {
   const tema = useTema();
@@ -18,7 +28,7 @@ export function EditalTree({ versao, aoMudar }: { versao: number; aoMudar: () =>
   const [disciplinas, setDisciplinas] = useState<Disciplina[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
 
-  const [novoTituloPorDisciplina, setNovoTituloPorDisciplina] = useState<Record<string, string>>({});
+  const [novoTituloPorLista, setNovoTituloPorLista] = useState<Record<string, string>>({});
   const [novaDisciplina, setNovaDisciplina] = useState({ nome: "", area: "", ordem: "" });
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -33,17 +43,18 @@ export function EditalTree({ versao, aoMudar }: { versao: number; aoMudar: () =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versao]);
 
-  async function adicionarTopicoRaiz(disciplinaId: string) {
-    const titulo = novoTituloPorDisciplina[disciplinaId]?.trim();
+  async function adicionarTopicoRaiz(disciplinaId: string, tipo: TipoConteudo) {
+    const chave = chaveNovoTopico(disciplinaId, tipo);
+    const titulo = novoTituloPorLista[chave]?.trim();
     if (!titulo) return;
     setSalvando(true);
-    const erroAcao = await criarTopico(disciplinaId, titulo, null, null);
+    const erroAcao = await criarTopico(disciplinaId, titulo, null, null, tipo);
     setSalvando(false);
     if (erroAcao) {
       setErro(erroAcao);
       return;
     }
-    setNovoTituloPorDisciplina((atual) => ({ ...atual, [disciplinaId]: "" }));
+    setNovoTituloPorLista((atual) => ({ ...atual, [chave]: "" }));
     await recarregar();
     aoMudar();
   }
@@ -78,32 +89,61 @@ export function EditalTree({ versao, aoMudar }: { versao: number; aoMudar: () =>
                 <Text style={estilos.disciplinaNome}>{disciplina.nome}</Text>
                 <Text style={estilos.disciplinaArea}>{disciplina.area}</Text>
               </View>
-              {raizes.map((topico) => (
-                <TopicoNode
-                  key={topico.id}
-                  topico={topico}
-                  todos={topicosDaDisciplina}
-                  disciplinaId={disciplina.id}
-                  aoMudar={async () => {
-                    await recarregar();
-                    aoMudar();
-                  }}
-                />
-              ))}
-              <View style={estilos.novoTopicoLinha}>
-                <TextInput
-                  value={novoTituloPorDisciplina[disciplina.id] ?? ""}
-                  onChangeText={(texto) =>
-                    setNovoTituloPorDisciplina((atual) => ({ ...atual, [disciplina.id]: texto }))
-                  }
-                  placeholder="novo tópico"
-                  placeholderTextColor={tema.textSecondary}
-                  style={estilos.input}
-                />
-                <TouchableOpacity onPress={() => adicionarTopicoRaiz(disciplina.id)} disabled={salvando}>
-                  <Text style={estilos.adicionarTexto}>Adicionar</Text>
-                </TouchableOpacity>
-              </View>
+
+              {listas.map(({ tipo, titulo }) => {
+                const ordenados = raizes
+                  .filter((t) => t.tipo_conteudo === tipo)
+                  .sort((a, b) => a.ordem_na_lista - b.ordem_na_lista);
+                const tocados = ordenados.filter((t) => t.status !== "nao_iniciado").length;
+                const proximoId = ordenados.find((t) => t.status === "nao_iniciado")?.id ?? null;
+                const chave = chaveNovoTopico(disciplina.id, tipo);
+
+                return (
+                  <View key={tipo} style={estilos.lista}>
+                    <View style={estilos.listaCabecalho}>
+                      <Text style={estilos.listaTitulo}>{titulo}</Text>
+                      <Text style={estilos.listaContador}>
+                        {tocados}/{ordenados.length}
+                      </Text>
+                    </View>
+                    {ordenados.length ? (
+                      ordenados.map((topico, indice) => (
+                        <TopicoListaItem
+                          key={topico.id}
+                          numero={indice + 1}
+                          proximo={topico.id === proximoId}
+                          topico={topico}
+                          todos={topicosDaDisciplina}
+                          disciplinaId={disciplina.id}
+                          aoMudar={async () => {
+                            await recarregar();
+                            aoMudar();
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Text style={estilos.vazio}>Nenhum item ainda.</Text>
+                    )}
+                    <View style={estilos.novoTopicoLinha}>
+                      <TextInput
+                        value={novoTituloPorLista[chave] ?? ""}
+                        onChangeText={(texto) =>
+                          setNovoTituloPorLista((atual) => ({ ...atual, [chave]: texto }))
+                        }
+                        placeholder={`novo item — ${titulo.toLowerCase()}`}
+                        placeholderTextColor={tema.textSecondary}
+                        style={estilos.input}
+                      />
+                      <TouchableOpacity
+                        onPress={() => adicionarTopicoRaiz(disciplina.id, tipo)}
+                        disabled={salvando}
+                      >
+                        <Text style={estilos.adicionarTexto}>Adicionar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           );
         })
@@ -152,11 +192,15 @@ function criarEstilos(tema: Tema) {
       backgroundColor: tema.surface,
       borderRadius: raioCard,
       padding: 12,
-      gap: 4,
+      gap: 10,
     },
-    disciplinaCabecalho: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
+    disciplinaCabecalho: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 },
     disciplinaNome: { fontSize: 14, fontWeight: "600", color: tema.foreground },
     disciplinaArea: { fontSize: 11, color: tema.textSecondary },
+    lista: { gap: 2 },
+    listaCabecalho: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+    listaTitulo: { fontSize: 12, fontWeight: "600", color: tema.foreground },
+    listaContador: { fontSize: 11, color: tema.textSecondary },
     novoTopicoLinha: { flexDirection: "row", gap: 6, alignItems: "center", marginTop: 4 },
     input: {
       flex: 1,
@@ -170,7 +214,7 @@ function criarEstilos(tema: Tema) {
       fontSize: 12,
     },
     adicionarTexto: { fontSize: 12, color: tema.primary, fontWeight: "600" },
-    vazio: { fontSize: 12, color: tema.textSecondary },
+    vazio: { fontSize: 12, color: tema.textSecondary, paddingVertical: 2 },
     erro: { fontSize: 12, color: tema.danger },
     novaDisciplinaCard: {
       gap: 6,

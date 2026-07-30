@@ -29,6 +29,18 @@
   --receita-text: #1e6b43;
   --despesa-bg: #fbe9e7;
   --despesa-text: #a3352c;
+
+  /* Categorias do Cronograma da semana — variações dentro do azul-sóbrio
+     (nunca cores saturadas fora dessa família), só para diferenciar
+     categoria à primeira vista. */
+  --cat-lei-seca-bg: #e4ecfa;
+  --cat-lei-seca-text: #1f3c73;
+  --cat-doutrina-bg: #eae7f9;
+  --cat-doutrina-text: #372f6b;
+  --cat-questoes-bg: #e1f0fa;
+  --cat-questoes-text: #164866;
+  --cat-jurisprudencia-bg: #dde6f5;
+  --cat-jurisprudencia-text: #24345c;
 }
 
 @theme inline {
@@ -48,6 +60,14 @@
   --color-receita-text: var(--receita-text);
   --color-despesa-bg: var(--despesa-bg);
   --color-despesa-text: var(--despesa-text);
+  --color-cat-lei-seca-bg: var(--cat-lei-seca-bg);
+  --color-cat-lei-seca-text: var(--cat-lei-seca-text);
+  --color-cat-doutrina-bg: var(--cat-doutrina-bg);
+  --color-cat-doutrina-text: var(--cat-doutrina-text);
+  --color-cat-questoes-bg: var(--cat-questoes-bg);
+  --color-cat-questoes-text: var(--cat-questoes-text);
+  --color-cat-jurisprudencia-bg: var(--cat-jurisprudencia-bg);
+  --color-cat-jurisprudencia-text: var(--cat-jurisprudencia-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -82,6 +102,15 @@
     --receita-text: #7fc79b;
     --despesa-bg: #331e1c;
     --despesa-text: #e0968f;
+
+    --cat-lei-seca-bg: #1c2a4a;
+    --cat-lei-seca-text: #a9c1ec;
+    --cat-doutrina-bg: #26214a;
+    --cat-doutrina-text: #c3b8ec;
+    --cat-questoes-bg: #123244;
+    --cat-questoes-text: #9bd4e8;
+    --cat-jurisprudencia-bg: #1e2740;
+    --cat-jurisprudencia-text: #b0c1e8;
   }
 }
 

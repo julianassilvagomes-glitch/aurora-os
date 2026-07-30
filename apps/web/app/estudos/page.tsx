@@ -6,6 +6,7 @@ import { EditalTree } from "./edital-tree";
 import { CronogramaList } from "./cronograma-list";
 import { QuestoesSecao } from "./questoes-secao";
 import { FlashcardsSecao } from "./flashcards-secao";
+import { VerticalizacaoSecao } from "./verticalizacao-secao";
 
 export default async function EstudosPage() {
   const supabase = await createClient();
@@ -28,6 +29,13 @@ export default async function EstudosPage() {
 
       <div className="flex w-full max-w-2xl flex-col gap-8">
         <CoberturaPainel />
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium text-text-secondary">
+            Verticalizar edital com IA
+          </h2>
+          <VerticalizacaoSecao />
+        </section>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-medium text-text-secondary">Edital verticalizado</h2>
