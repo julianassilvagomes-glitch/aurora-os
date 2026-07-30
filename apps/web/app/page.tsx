@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { AuroraHero } from "./aurora-hero";
 import { LoginForm } from "./login-form";
 import { UserMenu } from "./user-menu";
 import { ModuleCards } from "./module-cards";
@@ -12,11 +11,11 @@ export default async function Home() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <AuroraHero />
-        <div className="flex flex-1 items-center justify-center px-6 py-10">
-          <LoginForm />
-        </div>
+      // Fundo com gradiente é uma exceção deliberada à regra geral do
+      // sistema de design — vale só para esta tela, o cartão de login em
+      // si continua sóbrio (bg-surface, borda fina, um botão primário).
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#e9f1fb] via-[#eef0fb] to-[#efeafa] px-6 py-10 dark:from-[#0b0f14] dark:via-[#10121c] dark:to-[#120f1d]">
+        <LoginForm />
       </div>
     );
   }
