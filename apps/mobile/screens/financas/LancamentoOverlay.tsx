@@ -4,6 +4,7 @@ import { Plus, X } from "lucide-react-native";
 import { criarLancamentoOffline } from "../../lib/lancamentos";
 import type { Categoria } from "../../lib/categorias";
 import { useTema, raioCard, raioControle, type Tema } from "../../lib/theme";
+import { ALTURA_NAV } from "../../components/BottomNav";
 
 export function LancamentoOverlay({
   categorias,
@@ -131,7 +132,7 @@ function criarEstilos(tema: Tema) {
     fab: {
       position: "absolute",
       right: 20,
-      bottom: 28,
+      bottom: ALTURA_NAV + 12,
       width: 56,
       height: 56,
       borderRadius: 28,
@@ -144,7 +145,7 @@ function criarEstilos(tema: Tema) {
       position: "absolute",
       left: 16,
       right: 16,
-      bottom: 20,
+      bottom: ALTURA_NAV + 4,
       gap: 8,
       borderWidth: 1,
       borderColor: tema.border,

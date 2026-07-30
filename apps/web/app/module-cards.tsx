@@ -13,8 +13,8 @@ const modulos = [
     titulo: "Estudos",
     descricao: "Edital, cronograma e flashcards",
     icone: BookOpen,
-    href: null,
-    disponivel: false,
+    href: "/estudos",
+    disponivel: true,
   },
   {
     titulo: "Rotinas",
